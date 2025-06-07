@@ -1,4 +1,4 @@
-# CodeCollab
+# CodeNest
 
 A modern, collaborative code editor and project management platform built with React and Node.js.
 
