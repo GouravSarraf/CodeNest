@@ -141,3 +141,23 @@ export const renameFileOrFolder = async (projectId, itemId, newName) => {
     throw error;
   }
 };
+export const getFileById = async (projectId, fileId) => {
+  try {
+    const response = await axiosInstance.post(`/projects/${projectId}/getFile`, {projectId, fileId});
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching file:', error);
+    throw error;
+  }
+};
+export const getFolderById = async (projectId, folderId) => {
+  try {
+    const response = await axiosInstance.post(`/projects/${projectId}/getFolder`, {projectId, folderId});
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching folder:', error);
+    throw error;
+  }
+};

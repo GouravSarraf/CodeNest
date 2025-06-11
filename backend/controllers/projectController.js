@@ -5,14 +5,6 @@ const User = require("../models/User");
 const path = require("path");
 const { redis: redisClient, withCache } = require("../utils/redis");
 
-// Helper: Build path for a folder
-async function buildFolderPath(name, parentId) {
-  if (!parentId) return `/${name}`;
-  const parentFolder = await Folder.findById(parentId);
-  if (!parentFolder) throw new Error("Parent folder not found");
-  return `${parentFolder.path}/${name}`;
-}
-
 // Helper function to build path based on parent
 const buildPath = async (name, parentId) => {
   if (!parentId) {
@@ -40,7 +32,10 @@ const getAllProjects = async (req, res) => {
     const projects = await Project.find({ owner: req.user.userId })
       .select("-files -folders")
       .sort({ createdAt: -1 });
-
+    const collaborators = await Project.find({ collaborators: req.user.userId })
+      .select("-files -folders")
+      .sort({ createdAt: -1 });
+    projects.push(...collaborators);
     if (!projects) {
       return res.status(404).json({
         success: false,
@@ -132,7 +127,7 @@ const getProjectById = async (req, res) => {
 
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     })
       .populate("owner", "username email")
       .populate({
@@ -140,9 +135,9 @@ const getProjectById = async (req, res) => {
         populate: {
           path: "files folders",
           populate: {
-            path: "files folders",
-          },
-        },
+            path: "files"
+          }
+        }
       })
       .populate("files");
 
@@ -172,7 +167,7 @@ const deleteProject = async (req, res) => {
   try {
     const project = await Project.findOneAndDelete({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -216,7 +211,7 @@ const updateProject = async (req, res) => {
     const project = await Project.findOneAndUpdate(
       {
         _id: req.params.projectId,
-        owner: req.user.userId,
+        
       },
       { name, description },
       { new: true, runValidators: true }
@@ -255,7 +250,7 @@ const createFolder = async (req, res) => {
 
     const project = await Project.findOne({
       _id: projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -306,7 +301,7 @@ const createFile = async (req, res) => {
 
     const project = await Project.findOne({
       _id: projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -352,7 +347,7 @@ const getProjectStructure = async (req, res) => {
   try {
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     }).select("files folders");
 
     if (!project) {
@@ -375,7 +370,7 @@ const getFolderByPath = async (req, res) => {
     const { path: folderPath } = req.query;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     });
     
     if (!project) {
@@ -448,7 +443,7 @@ const createFileOrFolder = async (req, res) => {
     const { name, type, content, path: itemPath } = req.body;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId
+      
     });
 
     if (!project) {
@@ -526,7 +521,7 @@ const updateFileOrFolder = async (req, res) => {
     const { name, content } = req.body;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+
     });
 
     if (!project) {
@@ -569,7 +564,7 @@ const deleteFileOrFolder = async (req, res) => {
     const { type } = req.query;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -629,7 +624,7 @@ const getFileContent = async (req, res) => {
 
     const project = await Project.findOne({
       _id: projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -679,7 +674,7 @@ const updateFileContent = async (req, res) => {
 
     const project = await Project.findOne({
       _id: projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -731,7 +726,7 @@ const moveFileOrFolder = async (req, res) => {
     const { newPath } = req.body;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+      
     });
 
     if (!project) {
@@ -797,7 +792,7 @@ const renameFileOrFolder = async (req, res) => {
     const { newName } = req.body;
     const project = await Project.findOne({
       _id: req.params.projectId,
-      owner: req.user.userId,
+
     });
 
     if (!project) {
@@ -868,6 +863,65 @@ async function findItemAndParent(project, itemId) {
   return { parentFolder, item };
 }
 
+
+async function getFileById(req, res) {
+  const { projectId, fileId } = req.body;
+  if(!projectId || !fileId) {
+    return res.status(400).json({
+      success: false,
+      message: "Project ID and file ID are required",
+    });
+  }
+  try{
+    const file = await File.findById(fileId);
+    if (file && file.project.toString() === projectId.toString()){
+      return res.status(200).json({
+        success: true,
+        data: file,
+      });
+    }
+    return res.status(404).json({
+      success: false,
+      message: "File not found",
+    });
+  }catch(error){
+    console.error("Error in getFileById:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching file",
+      error: error.message,
+    });
+  }
+}
+async function getFolderById(req, res) {
+  const { projectId, folderId } = req.body;
+  if(!projectId || !folderId) {
+    return res.status(400).json({
+      success: false,
+      message: "Project ID and folder ID are required",
+    });
+  }
+  try{
+    const folder = await Folder.findById(folderId);
+    if (folder && folder.project.toString() === projectId.toString()){
+      return res.status(200).json({
+        success: true,
+        data: folder,
+      });
+    }
+    return res.status(404).json({
+      success: false,
+      message: "Folder not found",
+    });
+  }catch(error){
+    console.error("Error in getFolderById:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching folder",
+      error: error.message,
+    });
+  }
+} 
 module.exports = {
   getAllProjects,
   createProject,
@@ -885,4 +939,6 @@ module.exports = {
   updateFileContent,
   moveFileOrFolder,
   renameFileOrFolder,
+  getFileById,
+  getFolderById,
 };

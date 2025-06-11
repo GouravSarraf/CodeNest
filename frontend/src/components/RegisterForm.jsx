@@ -48,15 +48,15 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#222831' }}>
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold" style={{ color: '#EEEEEE' }}>
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm" style={{ color: '#EEEEEE' }}>
             Or{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            <Link to="/login" className="font-medium" style={{ color: '#00ADB5' }}>
               sign in to your account
             </Link>
           </p>
@@ -73,7 +73,8 @@ const RegisterForm = () => {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 focus:outline-none focus:ring-2 transition-colors"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
@@ -88,7 +89,8 @@ const RegisterForm = () => {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 focus:outline-none focus:ring-2 transition-colors"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Email address"
                 value={formData.email}
                 onChange={handleChange}
@@ -103,7 +105,8 @@ const RegisterForm = () => {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 focus:outline-none focus:ring-2 transition-colors"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
@@ -118,7 +121,8 @@ const RegisterForm = () => {
                 name="confirmPassword"
                 type="password"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 focus:outline-none focus:ring-2 transition-colors"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
@@ -127,17 +131,18 @@ const RegisterForm = () => {
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+            <div className="text-red-500 text-sm text-center" style={{ color: '#00ADB5' }}>{error}</div>
           )}
 
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="group relative w-full flex justify-center py-2 px-4 rounded-lg font-medium transition-colors"
+              style={{ background: '#00ADB5', color: '#222831' }}
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2" style={{ borderColor: '#EEEEEE' }}></div>
               ) : (
                 'Register'
               )}

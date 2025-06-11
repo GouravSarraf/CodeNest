@@ -21,55 +21,53 @@ import { projectAPI } from "../api/api";
 
 const FileIcon = ({ language, name }) => {
   const extension = name.split(".").pop()?.toLowerCase();
-
+  
   if (language === "javascript" || extension === "js" || extension === "jsx") {
-    return <FileCode className="w-4 h-4 text-yellow-500" />;
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
+  }
+  if (language === "cpp" || extension === "cpp") {
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
   }
   if (language === "html" || extension === "html") {
-    return <FileCode className="w-4 h-4 text-orange-500" />;
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
   }
   if (language === "css" || extension === "css") {
-    return <FileCode className="w-4 h-4 text-blue-500" />;
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
   }
   if (language === "json" || extension === "json") {
-    return <FileCode className="w-4 h-4 text-green-500" />;
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
   }
   if (language === "markdown" || extension === "md") {
-    return <FileText className="w-4 h-4 text-gray-600" />;
+    return <FileText className="w-4 h-4 text-[#B8CFCE]" />;
   }
   if (language === "python" || extension === "py") {
-    return <FileCode className="w-4 h-4 text-blue-600" />;
+    return <FileCode className="w-4 h-4 text-[#B8CFCE]" />;
   }
-  return <File className="w-4 h-4 text-gray-500" />;
+  return <File className="w-4 h-4 text-[#B8CFCE]" />;
 };
 
 const FileItem = ({ file, onFileClick, depth = 0, onDelete }) => {
   const [showActions, setShowActions] = useState(false);
-
+  
   return (
     <div
-      className="group relative flex items-center py-2.5 px-4 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 cursor-pointer transition-all duration-200"
-      style={{ paddingLeft: `${depth * 20 + 16}px` }}
+      className="group relative flex items-center py-1 px-2 hover:bg-[#393E46] cursor-pointer transition-all duration-200"
+      style={{ paddingLeft: `${depth * 12 + 8}px`, background: '#222831' }}
       onClick={() => onFileClick(file)}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/50 via-transparent to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
       <div className="relative flex items-center justify-between w-full">
         <div className="flex items-center">
-          <div className="bg-white dark:bg-gray-800 p-1.5 rounded-lg group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors duration-200 shadow-sm group-hover:shadow-md">
+          <div className="p-1">
             <FileIcon language={file.language} name={file.name} />
           </div>
-          <span className="ml-3 text-sm text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+          <span className="ml-1 text-sm text-[#EEEEEE] group-hover:text-[#00ADB5] transition-colors duration-200">
             {file.name}
           </span>
         </div>
-
-        {/* Action buttons */}
         <div
-          className={`flex items-center space-x-2 ${
+          className={`flex items-center space-x-1 ${
             showActions ? "opacity-100" : "opacity-0"
           } transition-opacity duration-200`}
         >
@@ -78,9 +76,9 @@ const FileItem = ({ file, onFileClick, depth = 0, onDelete }) => {
               e.stopPropagation();
               onDelete(file);
             }}
-            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+            className="p-1 hover:bg-[#393E46] rounded transition-colors duration-200"
           >
-            <Trash2 className="w-4 h-4 text-red-500" />
+            <Trash2 className="w-3 h-3 text-[#00ADB5]" />
           </button>
         </div>
       </div>
@@ -100,7 +98,49 @@ const FolderItem = ({
   const [showActions, setShowActions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [createType, setCreateType] = useState(null); // 'file' or 'folder'
+  const [createType, setCreateType] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [subfolders, setSubfolders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchFolderContents = async () => {
+    if (!isExpanded) return;
+
+    setIsLoading(true);
+    try {
+      // Fetch files
+      const filePromises = folder.files.map((fileId) =>
+        projectAPI.getFileById(folder.project, fileId)
+      );
+      const fileResults = await Promise.all(filePromises);
+      setFiles(
+        fileResults
+          .filter((result) => result.success)
+          .map((result) => result.data)
+      );
+
+      // Fetch subfolders
+      const folderPromises = folder.folders.map((folderId) =>
+        projectAPI.getFolderById(folder.project, folderId)
+      );
+      const folderResults = await Promise.all(folderPromises);
+      setSubfolders(
+        folderResults
+          .filter((result) => result.success)
+          .map((result) => result.data)
+      );
+    } catch (error) {
+      console.error("Error fetching folder contents:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isExpanded) {
+      fetchFolderContents();
+    }
+  }, [isExpanded, folder.files, folder.folders]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -112,13 +152,19 @@ const FolderItem = ({
 
     try {
       if (createType === "file") {
-        await onCreateFile(folder._id, newName);
+        await onCreateFile({ name: newName, type: "file", path: folder.path });
       } else {
-        await onCreateFolder(folder._id, newName);
+        await onCreateFolder({
+          name: newName,
+          type: "folder",
+          path: folder.path,
+        });
       }
       setNewName("");
       setCreateType(null);
       setIsCreating(false);
+      // Refresh folder contents after creating new item
+      fetchFolderContents();
     } catch (error) {
       console.error("Error creating:", error);
     }
@@ -127,35 +173,30 @@ const FolderItem = ({
   return (
     <div>
       <div
-        className="group relative flex items-center py-2.5 px-4 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 cursor-pointer transition-all duration-200"
-        style={{ paddingLeft: `${depth * 20 + 16}px` }}
+        className="group relative flex items-center py-1 px-2 hover:bg-[#393E46] cursor-pointer transition-all duration-200"
+        style={{ paddingLeft: `${depth * 12 + 8}px`, background: '#222831' }}
         onClick={toggleExpanded}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/50 via-transparent to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
         <div className="relative flex items-center justify-between w-full">
           <div className="flex items-center">
             <div className="flex items-center">
               {isExpanded ? (
-                <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors duration-200" />
+                <ChevronDown className="w-3 h-3 text-[#00ADB5] group-hover:text-[#EEEEEE] transition-colors duration-200" />
               ) : (
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors duration-200" />
+                <ChevronRight className="w-3 h-3 text-[#00ADB5] group-hover:text-[#EEEEEE] transition-colors duration-200" />
               )}
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-1.5 rounded-lg ml-1 group-hover:scale-110 transition-transform duration-200 shadow-sm group-hover:shadow-md">
-                <Folder className="w-4 h-4 text-white" />
+              <div className="p-1">
+                <Folder className="w-4 h-4 text-[#00ADB5]" />
               </div>
             </div>
-            <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+            <span className="ml-1 text-sm font-medium text-[#EEEEEE] group-hover:text-[#00ADB5] transition-colors duration-200">
               {folder.name}
             </span>
           </div>
-
-          {/* Action buttons */}
           <div
-            className={`flex items-center space-x-2 ${
+            className={`flex items-center space-x-1 ${
               showActions ? "opacity-100" : "opacity-0"
             } transition-opacity duration-200`}
           >
@@ -167,9 +208,9 @@ const FolderItem = ({
                     setCreateType("file");
                     setIsCreating(true);
                   }}
-                  className="p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors duration-200"
+                  className="p-1 hover:bg-[#393E46] rounded transition-colors duration-200"
                 >
-                  <FilePlus className="w-4 h-4 text-indigo-500" />
+                  <FilePlus className="w-3 h-3 text-[#00ADB5]" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -177,38 +218,64 @@ const FolderItem = ({
                     setCreateType("folder");
                     setIsCreating(true);
                   }}
-                  className="p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors duration-200"
+                  className="p-1 hover:bg-[#393E46] rounded transition-colors duration-200"
                 >
-                  <FolderPlus className="w-4 h-4 text-indigo-500" />
+                  <FolderPlus className="w-3 h-3 text-[#00ADB5]" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(folder);
                   }}
-                  className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                  className="p-1 hover:bg-[#393E46] rounded transition-colors duration-200"
                 >
-                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <Trash2 className="w-3 h-3 text-[#00ADB5]" />
                 </button>
               </>
-            ) : (
-              <div
-                className="flex items-center space-x-2"
-                onClick={(e) => e.stopPropagation()}
-              >
+            ) : null}
+          </div>
+        </div>
+      </div>
+      {isExpanded && (
+        <div className="animate-in slide-in-from-top-1 duration-200">
+          {isCreating && (
+            <div
+              className="flex items-center space-x-1 bg-[#393E46] rounded-lg border border-[#222831] shadow-sm my-1 ml-6"
+              style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center px-2">
+                {createType === "file" ? (
+                  <FilePlus className="w-3 h-3 text-[#00ADB5] mr-1" />
+                ) : (
+                  <FolderPlus className="w-3 h-3 text-[#00ADB5] mr-1" />
+                )}
                 <input
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder={`New ${createType} name...`}
-                  className="px-2 py-1 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-32 px-1 py-0.5 text-xs bg-transparent border-none focus:outline-none text-[#EEEEEE]"
                   autoFocus
+                  style={{ background: 'transparent' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newName.trim()) {
+                      handleCreate(e);
+                    } else if (e.key === 'Escape') {
+                      setIsCreating(false);
+                      setNewName("");
+                      setCreateType(null);
+                    }
+                  }}
                 />
+              </div>
+              <div className="flex items-center border-l border-[#222831]">
                 <button
                   onClick={handleCreate}
-                  className="p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors duration-200"
+                  disabled={!newName.trim()}
+                  className="p-1 hover:bg-[#222831] rounded-l-none transition-colors duration-200 disabled:opacity-50"
                 >
-                  <Check className="w-4 h-4 text-green-500" />
+                  <Check className="w-3 h-3 text-[#00ADB5]" />
                 </button>
                 <button
                   onClick={() => {
@@ -216,46 +283,51 @@ const FolderItem = ({
                     setNewName("");
                     setCreateType(null);
                   }}
-                  className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                  className="p-1 hover:bg-[#222831] rounded-l-none transition-colors duration-200"
                 >
-                  <X className="w-4 h-4 text-red-500" />
+                  <X className="w-3 h-3 text-[#00ADB5]" />
                 </button>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="animate-in slide-in-from-top-1 duration-200">
-          {folder.files?.map((file) => (
-            <FileItem
-              key={file._id}
-              file={file}
-              onFileClick={onFileClick}
-              onDelete={onDelete}
-              depth={depth + 1}
-            />
-          ))}
-
-          {folder.folders?.map((subfolder) => (
-            <FolderItem
-              key={subfolder._id}
-              folder={subfolder}
-              onFileClick={onFileClick}
-              onDelete={onDelete}
-              onCreateFile={onCreateFile}
-              onCreateFolder={onCreateFolder}
-              depth={depth + 1}
-            />
-          ))}
+            </div>
+          )}
+          {isLoading ? (
+            <div className="py-2 px-4">
+              <div className="animate-pulse flex space-x-2">
+                <div className="h-4 w-4 bg-[#393E46] rounded"></div>
+                <div className="h-4 w-24 bg-[#393E46] rounded"></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {files.map((file) => (
+                <FileItem
+                  key={file._id}
+                  file={file}
+                  onFileClick={onFileClick}
+                  onDelete={onDelete}
+                  depth={depth + 1}
+                />
+              ))}
+              {subfolders.map((subfolder) => (
+                <FolderItem
+                  key={subfolder._id}
+                  folder={subfolder}
+                  onFileClick={onFileClick}
+                  onDelete={onDelete}
+                  onCreateFile={onCreateFile}
+                  onCreateFolder={onCreateFolder}
+                  depth={depth + 1}
+                />
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-function FileExplorer({ onFileSelect }) {
+function FileExplorer({ onFileSelect, onBack }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
@@ -270,6 +342,7 @@ function FileExplorer({ onFileSelect }) {
     name: "",
     type: "file",
     content: "",
+    path: "",
   });
   const [currentFolder, setCurrentFolder] = useState(null);
 
@@ -332,17 +405,18 @@ function FileExplorer({ onFileSelect }) {
     }
   };
 
-  const handleCreateItem = async (e) => {
-    e.preventDefault();
+  const handleCreateItem = async ({ name, type, path }) => {
     try {
       setError(null);
+
       const response = await projectAPI.createFileOrFolder(project._id, {
-        ...newItem,
-        path: currentPath,
+        name: name,
+        type: type,
+        path: path,
       });
       if (response.success) {
         setShowCreateModal(false);
-        setNewItem({ name: "", type: "file", content: "" });
+        setNewItem({ name: "", type: "file", content: "", path: "" });
         fetchCurrentFolder();
       } else {
         setError("Failed to create item");
@@ -357,9 +431,10 @@ function FileExplorer({ onFileSelect }) {
     if (!window.confirm(`Are you sure you want to delete this ${type}?`)) {
       return;
     }
-
+    onFileSelect(null);
     try {
       setError(null);
+
       const response = await projectAPI.deleteFileOrFolder(
         project._id,
         itemId,
@@ -373,16 +448,6 @@ function FileExplorer({ onFileSelect }) {
     } catch (error) {
       console.error(`Error deleting ${type}:`, error);
       setError(`Failed to delete ${type}`);
-    }
-  };
-
-  const handleFolderClick = (folder) => {
-    setCurrentPath(folder.path);
-  };
-
-  const handleFileClick = (file) => {
-    if (onFileSelect) {
-      onFileSelect(file);
     }
   };
 
@@ -404,16 +469,16 @@ function FileExplorer({ onFileSelect }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#7F8CAA]"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-red-500">{error}</div>
+      <div className="h-full flex items-center justify-center">
+        <div className="text-[#7F8CAA]">{error}</div>
       </div>
     );
   }
@@ -423,162 +488,130 @@ function FileExplorer({ onFileSelect }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-8 gap-4 sm:gap-0">
-          <div className="flex-1">
-            <button
-              onClick={handleBack}
-              className="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Back
-            </button>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex-1 text-center">
+    <div className="h-full flex flex-col" style={{ background: '#222831' }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: '#393E46', background: '#222831' }}>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleBack}
+            className="p-1 hover:bg-[#393E46] rounded transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#00ADB5]" />
+          </button>
+          <h2 className="text-sm font-medium text-[#EEEEEE] truncate">
             {project.name}
-          </h1>
-          <div className="flex-1 flex justify-end">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              New Item
-            </button>
-          </div>
+          </h2>
         </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2 sm:p-4 md:p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Current Path: {currentPath}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-            {currentFolder?.folders?.map((folder) => (
-              <div
-                key={folder._id}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                onClick={() => handleFolderClick(folder)}
-              >
-                <div className="flex items-center">
-                  <Folder className="w-6 h-6 text-blue-500 mr-3" />
-                  <span className="text-gray-900 dark:text-white">
-                    {folder.name}
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteItem(folder._id, "folder");
-                  }}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
-
-            {currentFolder?.files?.map((file) => (
-              <div
-                key={file._id}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                onClick={() => handleFileClick(file)}
-              >
-                <div className="flex items-center">
-                  <File className="w-6 h-6 text-green-500 mr-3" />
-                  <span className="text-gray-900 dark:text-white">
-                    {file.name}
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteItem(file._id, "file");
-                  }}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {showCreateModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 px-2">
-            <div className="absolute inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30"></div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-md shadow-2xl border border-gray-200 dark:border-gray-700 relative">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Create New Item
-              </h2>
-              <form onSubmit={handleCreateItem}>
-                <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newItem.name}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                    Type
-                  </label>
-                  <select
-                    value={newItem.type}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, type: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value="file">File</option>
-                    <option value="folder">Folder</option>
-                  </select>
-                </div>
-                {newItem.type === "file" && (
-                  <div className="mb-4">
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                      Content
-                    </label>
-                    <textarea
-                      value={newItem.content}
-                      onChange={(e) =>
-                        setNewItem({ ...newItem, content: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      rows="4"
-                    />
-                  </div>
-                )}
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Create
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="p-1 hover:bg-[#393E46] rounded transition-colors"
+        >
+          <Plus className="w-4 h-4 text-[#00ADB5]" />
+        </button>
       </div>
+      {/* File Tree */}
+      <div className="flex-1 overflow-y-auto py-2" style={{ background: '#222831' }}>
+        {currentFolder?.folders?.map((folder) => (
+          <FolderItem
+            key={folder._id}
+            folder={folder}
+            onFileClick={(file) => {
+              onFileSelect(file);
+              if (onBack) onBack();
+            }}
+            onDelete={(folder) => handleDeleteItem(folder._id, "folder")}
+            onCreateFile={handleCreateItem}
+            onCreateFolder={handleCreateItem}
+            depth={0}
+          />
+        ))}
+        {currentFolder?.files?.map((file) => (
+          <FileItem
+            key={file._id}
+            file={file}
+            onFileClick={(file) => {
+              onFileSelect(file);
+              if (onBack) onBack();
+            }}
+            onDelete={(file) => handleDeleteItem(file._id, "file")}
+            depth={0}
+          />
+        ))}
+      </div>
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 px-2">
+          <div className="absolute inset-0 backdrop-blur-sm" style={{ background: '#222831cc' }}></div>
+          <div className="rounded-lg p-4 w-full max-w-xs shadow-2xl border relative" style={{ background: '#393E46', borderColor: '#00ADB5' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-medium text-[#EEEEEE]">
+                Create New
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 hover:bg-[#222831] rounded transition-colors"
+              >
+                <X className="w-4 h-4 text-[#00ADB5]" />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateItem({
+                  name: newItem.name,
+                  type: newItem.type,
+                  path: currentPath,
+                });
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <input
+                  type="text"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  placeholder="Enter name..."
+                  className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-1"
+                  style={{ background: '#222831', color: '#EEEEEE', borderColor: '#393E46' }}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setNewItem({ ...newItem, type: "file" })}
+                  className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    newItem.type === "file"
+                      ? "bg-[#00ADB5] text-[#222831]"
+                      : "bg-[#393E46] text-[#EEEEEE]"
+                  }`}
+                >
+                  File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewItem({ ...newItem, type: "folder" })}
+                  className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    newItem.type === "folder"
+                      ? "bg-[#00ADB5] text-[#222831]"
+                      : "bg-[#393E46] text-[#EEEEEE]"
+                  }`}
+                >
+                  Folder
+                </button>
+              </div>
+              <button
+                type="submit"
+                className="w-full px-3 py-2 rounded-lg transition-colors"
+                style={{ background: '#00ADB5', color: '#222831' }}
+              >
+                Create
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

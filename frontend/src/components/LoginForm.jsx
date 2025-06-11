@@ -51,18 +51,19 @@ const LoginForm = ({onLoginSuccess}) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#222831' }}>
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-3xl font-extrabold" style={{ color: '#EEEEEE' }}>
             Welcome back
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm" style={{ color: '#EEEEEE' }}>
             Don't have an account?{' '}
             <button
               onClick={() => navigate('/register')}
-              className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              className="font-medium"
+              style={{ color: '#00ADB5' }}
             >
               Sign up
             </button>
@@ -75,7 +76,7 @@ const LoginForm = ({onLoginSuccess}) => {
             {/* Email Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5" style={{ color: '#00ADB5' }} />
               </div>
               <input
                 id="email"
@@ -85,7 +86,8 @@ const LoginForm = ({onLoginSuccess}) => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm transition-colors duration-200"
+                className="appearance-none relative block w-full pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 transition-colors duration-200"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Email address"
               />
             </div>
@@ -93,7 +95,7 @@ const LoginForm = ({onLoginSuccess}) => {
             {/* Password Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5" style={{ color: '#00ADB5' }} />
               </div>
               <input
                 id="password"
@@ -103,7 +105,8 @@ const LoginForm = ({onLoginSuccess}) => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm transition-colors duration-200"
+                className="appearance-none relative block w-full pl-10 pr-10 py-3 rounded-lg focus:outline-none focus:ring-2 transition-colors duration-200"
+                style={{ background: '#393E46', color: '#EEEEEE', borderColor: '#222831' }}
                 placeholder="Password"
               />
               <button
@@ -111,7 +114,7 @@ const LoginForm = ({onLoginSuccess}) => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <span className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                <span style={{ color: '#00ADB5' }}>
                   {showPassword ? "Hide" : "Show"}
                 </span>
               </button>
@@ -120,13 +123,13 @@ const LoginForm = ({onLoginSuccess}) => {
 
           {/* Error Message */}
           {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+            <div className="rounded-md p-4" style={{ background: '#393E46' }}>
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <AlertCircle className="h-5 w-5" style={{ color: '#00ADB5' }} />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                  <p className="text-sm" style={{ color: '#EEEEEE' }}>{error}</p>
                 </div>
               </div>
             </div>
@@ -139,9 +142,10 @@ const LoginForm = ({onLoginSuccess}) => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                className="h-4 w-4"
+                style={{ accentColor: '#00ADB5' }}
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+              <label htmlFor="remember-me" className="ml-2 block text-sm" style={{ color: '#EEEEEE' }}>
                 Remember me
               </label>
             </div>
@@ -150,7 +154,8 @@ const LoginForm = ({onLoginSuccess}) => {
               <button
                 type="button"
                 onClick={() => navigate('/forgot-password')}
-                className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="font-medium"
+                style={{ color: '#00ADB5' }}
               >
                 Forgot your password?
               </button>
@@ -162,7 +167,8 @@ const LoginForm = ({onLoginSuccess}) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="group relative w-full flex justify-center py-3 px-4 rounded-lg font-medium transition-colors duration-200"
+              style={{ background: '#00ADB5', color: '#222831' }}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -176,10 +182,10 @@ const LoginForm = ({onLoginSuccess}) => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                <div className="w-full border-t" style={{ borderColor: '#393E46' }}></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                <span className="px-2" style={{ background: '#222831', color: '#EEEEEE' }}>
                   Or continue with
                 </span>
               </div>

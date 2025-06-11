@@ -14,7 +14,9 @@ const {
   getFileContent,
   updateFileContent,
   moveFileOrFolder,
-  renameFileOrFolder
+  renameFileOrFolder,
+  getFileById,
+  getFolderById
 } = require('../controllers/projectController');
 
 // Project routes
@@ -29,7 +31,8 @@ router.get('/:projectId/folder', verifyAccessToken, getFolderByPath);
 router.post('/:projectId/items', verifyAccessToken, createFileOrFolder);
 router.put('/:projectId/items/:itemId', verifyAccessToken, updateFileOrFolder);
 router.delete('/:projectId/items/:itemId', verifyAccessToken, deleteFileOrFolder);
-
+router.post('/:projectId/getFile', verifyAccessToken, getFileById);
+router.post('/:projectId/getFolder', verifyAccessToken, getFolderById);
 // File content routes
 router.get('/:projectId/files/:fileId/content', verifyAccessToken, getFileContent);
 router.put('/:projectId/files/:fileId/content', verifyAccessToken, updateFileContent);

@@ -17,10 +17,13 @@ import {
   Bell,
   Menu,
   Trash2,
-  ArrowLeft
+  ArrowLeft,
+  Link
 } from 'lucide-react';
 import FileExplorer from './FileExplorer';
 import { projectAPI } from '../api/api';
+import { generateInvite } from '../api/invite';
+import { authAPI } from '../api/auth';
 
 
 const ProjectsPage = () => {
@@ -37,6 +40,8 @@ const ProjectsPage = () => {
     name: '',
     description: ''
   });
+  const [inviteLink, setInviteLink] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -123,6 +128,23 @@ const ProjectsPage = () => {
     }
   };
 
+  const handleGenerateInvite = async (projectId, e) => {
+    e.stopPropagation();
+    try {
+      const response = await generateInvite(projectId);
+      if (response.success) {
+        const inviteUrl = response.url;
+        setInviteLink(inviteUrl);
+        await navigator.clipboard.writeText(inviteUrl);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error('Error generating invite:', error);
+      setError('Failed to generate invite link');
+    }
+  };
+
   // Check system dark mode preference
   useEffect(() => {
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -145,16 +167,27 @@ const ProjectsPage = () => {
   const handleBackToProjects = () => {
     navigate('/projects');
   };
-  
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+      navigate('/login');
+    } catch (error) {
+      // Optionally handle error
+      navigate('/login');
+    }
+  };
+
   if (selectedProject) {
     return <FileExplorer project={selectedProject} onBack={handleBackToProjects} />;
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-8">
+      <div className="min-h-screen bg-[#FAFFCA]/5 dark:bg-[#5A827E]/5 p-4 sm:p-8">
         <div className="flex justify-center items-center h-40 sm:h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#5A827E]"></div>
         </div>
       </div>
     );
@@ -162,38 +195,37 @@ const ProjectsPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-2">
-        <div className="text-red-500">{error}</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFFCA]/5 dark:bg-[#5A827E]/5 p-2">
+        <div className="text-[#5A827E] dark:text-[#B9D4AA]">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
+    <div className="min-h-screen transition-colors duration-300" style={{ background: '#222831' }}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-700">
+      <header className="sticky top-0 z-50 border-b backdrop-blur-lg" style={{ background: '#222831', borderColor: '#393E46' }}>
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          {copySuccess && (
+            <div className="w-full py-2 mb-2 rounded-lg text-sm text-center" style={{ background: '#00ADB5', color: '#222831' }}>
+              Invite link copied to clipboard!
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-16 gap-2 sm:gap-0 py-2 sm:py-0">
             {/* Left section */}
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                <Menu className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-              <h1 className="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                Home
-              </h1>
-            </div>
+            
 
             {/* Center section - Search */}
             <div className="flex-1 max-w-2xl mx-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
+                  <Search className="w-5 h-5" style={{ color: '#00ADB5' }} />
                 </div>
                 <input
                   type="text"
                   placeholder="Search projects..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-300"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 placeholder-[#EEEEEE]"
+                  style={{ background: '#393E46', borderColor: '#393E46', color: '#EEEEEE' }}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -202,7 +234,7 @@ const ProjectsPage = () => {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setSearchTerm('')}
                   >
-                    <X className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200" />
+                    <X className="w-4 h-4" style={{ color: '#00ADB5' }} />
                   </button>
                 )}
               </div>
@@ -210,16 +242,22 @@ const ProjectsPage = () => {
 
             {/* Right section */}
             <div className="flex items-center space-x-2">
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+              
               
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-2 rounded-xl flex items-center transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                className="px-4 py-2 rounded-xl flex items-center transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
+                style={{ background: '#00ADB5', color: '#222831' }}
               >
                 <Plus className="w-5 h-5 mr-2" />
                 New Project
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-xl flex items-center transition-all duration-300 ml-2 hover:shadow-xl hover:scale-105 cursor-pointer"
+                style={{ background: '#00ADB5', color: '#222831' }}
+              >
+                Logout
               </button>
             </div>
           </div>
@@ -230,12 +268,9 @@ const ProjectsPage = () => {
       <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Quick actions */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-8 gap-2 sm:gap-0">
-          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-            <Command className="w-4 h-4" />
-            <span>Press <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">⌘</kbd> + <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">K</kbd> to search</span>
-          </div>
+          
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm" style={{ color: '#00ADB5' }}>
               {filteredProjects.length} projects
             </span>
           </div>
@@ -246,7 +281,7 @@ const ProjectsPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl h-48"></div>
+                <div className="rounded-2xl h-48" style={{ background: '#393E46' }}></div>
               </div>
             ))}
           </div>
@@ -255,27 +290,39 @@ const ProjectsPage = () => {
             {filteredProjects.map((project) => (
               <div
                 key={project._id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                className="rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border"
+                style={{ background: '#393E46', borderColor: '#00ADB5' }}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <Folder className="w-6 h-6 text-blue-500 mr-2" />
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      <Folder className="w-6 h-6 mr-2" style={{ color: '#00ADB5' }} />
+                      <h2 className="text-xl font-semibold" style={{ color: '#EEEEEE' }}>
                         {project.name}
                       </h2>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProject(project._id);
-                      }}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => handleGenerateInvite(project._id, e)}
+                        className="transition-colors"
+                        title="Generate invite link"
+                        style={{ color: '#00ADB5' }}
+                      >
+                        <Link className="w-5 h-5 cursor-pointer" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProject(project._id);
+                        }}
+                        className="transition-colors"
+                        style={{ color: '#00ADB5' }}
+                      >
+                        <Trash2 className="w-5 h-5 cursor-pointer" />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="mb-4" style={{ color: '#00ADB5' }}>
                     {project.description || 'No description provided'}
                   </p>
                   <button
@@ -283,7 +330,8 @@ const ProjectsPage = () => {
                       e.stopPropagation();
                       handleProjectClick(project);
                     }}
-                    className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="w-full px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                    style={{ background: '#222831', color: '#EEEEEE' }}
                   >
                     Open Project
                   </button>
@@ -295,14 +343,14 @@ const ProjectsPage = () => {
 
         {/* Empty state */}
         {!isLoading && filteredProjects.length === 0 && (
-          <div className="text-center py-10 sm:py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg mx-2">
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 sm:p-6 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-6">
-              <Folder className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
+          <div className="text-center py-10 sm:py-20 rounded-2xl border shadow-lg mx-2" style={{ background: '#393E46', borderColor: '#00ADB5' }}>
+            <div className="p-4 sm:p-6 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-6" style={{ background: '#222831' }}>
+              <Folder className="w-10 h-10" style={{ color: '#00ADB5' }} />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+            <h3 className="text-xl font-semibold mb-3" style={{ color: '#EEEEEE' }}>
               {searchTerm ? 'No matching projects' : 'No projects yet'}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-6">
+            <p className="max-w-sm mx-auto mb-6" style={{ color: '#00ADB5' }}>
               {searchTerm 
                 ? 'Try adjusting your search terms or create a new project.'
                 : 'Create your first project to get started with your development journey.'}
@@ -310,7 +358,8 @@ const ProjectsPage = () => {
             {!searchTerm && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center mx-auto transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                className="px-6 py-3 rounded-xl flex items-center mx-auto transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
+                style={{ background: '#00ADB5', color: '#222831' }}
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Create Project
@@ -322,32 +371,35 @@ const ProjectsPage = () => {
 
       {/* Create Project Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="absolute inset-0 bg-[#222831]/60 backdrop-blur-sm"></div>
+          <div className="rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-md border z-10" style={{ background: '#393E46', borderColor: '#00ADB5' }}>
+            <h2 className="text-2xl font-bold mb-4" style={{ color: '#EEEEEE' }}>
               Create New Project
             </h2>
             <form onSubmit={handleCreateProject}>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block mb-2" style={{ color: '#00ADB5' }}>
                   Project Name
                 </label>
                 <input
                   type="text"
                   value={newProject.name}
                   onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
+                  style={{ background: '#222831', color: '#EEEEEE', borderColor: '#393E46' }}
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block mb-2" style={{ color: '#00ADB5' }}>
                   Description
                 </label>
                 <textarea
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
+                  style={{ background: '#222831', color: '#EEEEEE', borderColor: '#393E46' }}
                   rows="3"
                 />
               </div>
@@ -355,13 +407,15 @@ const ProjectsPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                  className="px-4 py-2"
+                  style={{ color: '#00ADB5' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                  style={{ background: '#00ADB5', color: '#222831' }}
                 >
                   Create Project
                 </button>
