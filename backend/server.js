@@ -8,6 +8,7 @@ const { initSocket } = require('./config/socket');
 const app = express();
 const server = http.createServer(app);
 
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -32,6 +33,6 @@ mongoose.connect(process.env.MONGODB_URI)
 mongoose.set('strictPopulate', false);
 initSocket(server);
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

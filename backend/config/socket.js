@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const { instrument } = require("@socket.io/admin-ui");
 
 function initSocket(server) {
   const io = new Server(server, {
@@ -8,24 +9,25 @@ function initSocket(server) {
     }
   });
 
+  // Admin UI instrumentation
+  instrument(io, {
+    auth: false
+  });
+
   io.on('connection', (socket) => {
     console.log('Socket connected:', socket.id);
 
-    // Join project room
     socket.on('join-project', (projectId) => {
       socket.join(`project-${projectId}`);
       console.log(`Socket ${socket.id} joined project-${projectId}`);
     });
 
-    // Leave project room
     socket.on('leave-project', (projectId) => {
       socket.leave(`project-${projectId}`);
       console.log(`Socket ${socket.id} left project-${projectId}`);
     });
 
-    // Handle file updates
     socket.on('file-update', (data) => {
-      // Only broadcast to users in the same project
       io.to(`project-${data.projectId}`).emit('file-update', data);
     });
 
